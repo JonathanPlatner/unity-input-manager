@@ -1,5 +1,3 @@
-﻿using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class Inputs
@@ -118,5 +116,23 @@ public class Inputs
             return value;
         }
 
+    }
+
+    public class Mouse
+    {
+        public Vector2 Pixel()
+        {
+            return Input.mousePosition;
+        }
+
+        public Vector2 World(Camera c)
+        {
+            return c.ScreenToWorldPoint(Input.mousePosition);
+        }
+
+        public Ray Project(Camera c)
+        {
+            return c.ScreenPointToRay(Input.mousePosition);
+        }
     }
 }
