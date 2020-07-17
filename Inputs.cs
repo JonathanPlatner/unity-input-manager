@@ -5,113 +5,130 @@ public class Inputs
     [System.Serializable]
     public class Button
     {
-        public enum MouseButton { None = -1, Zero, One, Two, Three, Four, Five, Six, Seven, Eight, Nine, Ten }
         [SerializeField]
-        private KeyCode key;
-        [SerializeField]
-        private MouseButton mouseButton = MouseButton.None;
-        [SerializeField]
-        private string gamepadButton;
+        private KeyCode[] inputs;
 
-        public Button(MouseButton mb, KeyCode k, string gp)
+        private bool value;
+        private bool lastValue;
+        public Button(KeyCode k)
         {
-            mouseButton = mb;
-            key = k;
-            gamepadButton = gp;
+            inputs = new KeyCode[] { k };
+        }
+        public Button(KeyCode[] k)
+        {
+            inputs = k;
         }
 
-        /// <summary>
-        /// key, mouse button, or gamepad buton is currently pressed
-        /// </summary>
         public bool Active()
         {
-            if(key != KeyCode.None)
+            foreach(KeyCode k in inputs)
             {
-                if(Input.GetKey(key)) return true;
-            }
-            if(mouseButton != MouseButton.None)
-            {
-                if(Input.GetMouseButton((int)mouseButton)) return true;
-            }
-            if(gamepadButton != string.Empty)
-            {
-                if(Input.GetButton(gamepadButton)) return true;
+                if(k != KeyCode.None)
+                {
+                    if(Input.GetKey(k)) return true;
+                }
             }
             return false;
         }
 
-        /// <summary>
-        /// Rising edge trigger (pressed) for the given key, mouse button, or gamepad button
-        /// </summary>
         public bool Down()
         {
-            if(key != KeyCode.None)
+            foreach(KeyCode k in inputs)
             {
-                if(Input.GetKeyDown(key)) return true;
-            }
-            if(mouseButton != MouseButton.None)
-            {
-                if(Input.GetMouseButtonDown((int)mouseButton)) return true;
-            }
-            if(gamepadButton != string.Empty)
-            {
-                if(Input.GetButtonDown(gamepadButton)) return true;
+                if(k != KeyCode.None)
+                {
+                    if(Input.GetKey(k))
+                    {
+                        value = true;
+                        if(!lastValue)
+                        {
+                            lastValue = true;
+                            return true;
+                        }
+                    }
+                }
             }
             return false;
         }
 
-        /// <summary>
-        /// Falling edge trigger (released) for the given key, mouse button, or gamepad button
-        /// </summary>
+
         public bool Up()
         {
-            if(key != KeyCode.None)
+            foreach(KeyCode k in inputs)
             {
-                if(Input.GetKeyUp(key)) return true;
+                if(k != KeyCode.None)
+                {
+                    if(Input.GetKey(k))
+                    {
+                        return false;
+                    }
+                }
             }
-            if(mouseButton != MouseButton.None)
+            value = false;
+            if(lastValue)
             {
-                if(Input.GetMouseButtonUp((int)mouseButton)) return true;
-            }
-            if(gamepadButton != string.Empty)
-            {
-                if(Input.GetButtonUp(gamepadButton)) return true;
+                lastValue = false;
+                return true;
             }
             return false;
         }
     }
 
     [System.Serializable]
-    public class Axis
+    private struct AxisInput
     {
         [SerializeField]
         private KeyCode positive;
         [SerializeField]
         private KeyCode negative;
-        [SerializeField]
-        private string gamepadAxis;
 
-        public Axis(KeyCode p, KeyCode n, string gp)
+        public KeyCode Positive { get { return positive; } }
+        public KeyCode Negative { get { return negative; } }
+        public AxisInput(KeyCode p, KeyCode n)
         {
             positive = p;
             negative = n;
-            gamepadAxis = gp;
+        }
+    }
+    [System.Serializable]
+    public class Axis
+    {
+        [SerializeField]
+        private AxisInput[] inputs;
+
+        public Axis(KeyCode p, KeyCode n)
+        {
+            inputs = new AxisInput[] { new AxisInput(p, n) };
+        }
+        public Axis(KeyCode[] p, KeyCode[] n)
+        {
+            inputs = new AxisInput[p.Length];
+            for(int i = 0; i < p.Length; i++)
+            {
+                inputs[i] = new AxisInput(p[i], n[i]);
+            }
         }
 
         public float Value()
         {
             float value = 0;
 
-            if(gamepadAxis != string.Empty) return Input.GetAxis(gamepadAxis);
-
-            if(positive != KeyCode.None)
+            foreach(AxisInput i in inputs)
             {
-                if(Input.GetKey(positive)) value += 1;
+                if(Input.GetKey(i.Positive))
+                {
+                    value += 1;
+                    break;
+                }
             }
 
-            if(negative != KeyCode.None)
+            foreach(AxisInput i in inputs)
             {
-                if(Input.GetKey(negative)) value -= 1;
+                if(Input.GetKey(i.Negative))
+                {
+                    value -= 1;
+                    break;
+                }
             }
             return value;
         }
@@ -134,5 +151,19 @@ public class Inputs
         {
             return c.ScreenPointToRay(Input.mousePosition);
         }
+    }
+
+
+
+    public static KeyCode GetNextKey()
+    {
+        foreach(KeyCode key in System.Enum.GetValues(typeof(KeyCode)))
+        {
+            if(Input.GetKey(key))
+            {
+                Debug.Log(key);
+            }
+        }
+        return KeyCode.None;
     }
 }
