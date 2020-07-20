@@ -8,8 +8,6 @@ public class Inputs
         [SerializeField]
         private KeyCode[] inputs;
 
-        private bool value;
-        private bool lastValue;
         public Button(KeyCode k)
         {
             inputs = new KeyCode[] { k };
@@ -33,43 +31,44 @@ public class Inputs
 
         public bool Down()
         {
+            bool keyDown = false;
             foreach(KeyCode k in inputs)
             {
                 if(k != KeyCode.None)
                 {
-                    if(Input.GetKey(k))
+                    if(Input.GetKeyDown(k))
                     {
-                        value = true;
-                        if(!lastValue)
-                        {
-                            lastValue = true;
-                            return true;
-                        }
+                        keyDown = true;
+                    }
+                    else if(Input.GetKey(k))
+                    {
+                        return false;
                     }
                 }
             }
+            if(keyDown) return true;
             return false;
         }
 
 
         public bool Up()
         {
+            bool keyUp = false;
             foreach(KeyCode k in inputs)
             {
                 if(k != KeyCode.None)
                 {
-                    if(Input.GetKey(k))
+                    if(Input.GetKeyUp(k))
+                    {
+                        keyUp = true;
+                    }
+                    else if(Input.GetKey(k) || Input.GetKeyDown(k))
                     {
                         return false;
                     }
                 }
             }
-            value = false;
-            if(lastValue)
-            {
-                lastValue = false;
-                return true;
-            }
+            if(keyUp) return true;
             return false;
         }
     }
